@@ -12,6 +12,7 @@ import numpy as np
 
 from einops import rearrange
 from annotator.util import annotator_ckpts_path
+import rp
 
 
 class DoubleConvBlock(torch.nn.Module):
@@ -53,21 +54,23 @@ class ControlNetHED_Apache2(torch.nn.Module):
         return projection1, projection2, projection3, projection4, projection5
 
 
-class HEDdetector:
-    def __init__(self):
+@rp.CachedInstances
+class _HEDdetector:
+    def __init__(self, device):
+        self.device=device
         remote_model_path = "https://huggingface.co/lllyasviel/Annotators/resolve/main/ControlNetHED.pth"
         modelpath = os.path.join(annotator_ckpts_path, "ControlNetHED.pth")
         if not os.path.exists(modelpath):
             from basicsr.utils.download_util import load_file_from_url
             load_file_from_url(remote_model_path, model_dir=annotator_ckpts_path)
-        self.netNetwork = ControlNetHED_Apache2().float().cuda().eval()
+        self.netNetwork = ControlNetHED_Apache2().float().to(device).eval()
         self.netNetwork.load_state_dict(torch.load(modelpath))
 
     def __call__(self, input_image):
         assert input_image.ndim == 3
         H, W, C = input_image.shape
         with torch.no_grad():
-            image_hed = torch.from_numpy(input_image.copy()).float().cuda()
+            image_hed = torch.from_numpy(input_image.copy()).float().to(self.device)
             image_hed = rearrange(image_hed, 'h w c -> 1 c h w')
             edges = self.netNetwork(image_hed)
             edges = [e.detach().cpu().numpy().astype(np.float32)[0, 0] for e in edges]
@@ -77,6 +80,12 @@ class HEDdetector:
             edge = (edge * 255.0).clip(0, 255).astype(np.uint8)
             return edge
 
+def HEDdetector(device=None):
+
+    if device is None:
+        device = rp.select_torch_device()
+
+    return _HEDdetector(device)
 
 def nms(x, t, s):
     x = cv2.GaussianBlur(x.astype(np.float32), (0, 0), s)

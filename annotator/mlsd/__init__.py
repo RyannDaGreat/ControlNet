@@ -13,20 +13,23 @@ from .models.mbv2_mlsd_large import MobileV2_MLSD_Large
 from .utils import pred_lines
 
 from annotator.util import annotator_ckpts_path
+import rp
 
 
 remote_model_path = "https://huggingface.co/lllyasviel/ControlNet/resolve/main/annotator/ckpts/mlsd_large_512_fp32.pth"
 
 
-class MLSDdetector:
-    def __init__(self):
+@rp.CachedInstances
+class _MLSDdetector:
+    def __init__(self, device):
+        self.device = device
         model_path = os.path.join(annotator_ckpts_path, "mlsd_large_512_fp32.pth")
         if not os.path.exists(model_path):
             from basicsr.utils.download_util import load_file_from_url
             load_file_from_url(remote_model_path, model_dir=annotator_ckpts_path)
         model = MobileV2_MLSD_Large()
         model.load_state_dict(torch.load(model_path), strict=True)
-        self.model = model.cuda().eval()
+        self.model = model.to(device).eval()
 
     def __call__(self, input_image, thr_v, thr_d):
         assert input_image.ndim == 3
@@ -41,3 +44,10 @@ class MLSDdetector:
         except Exception as e:
             pass
         return img_output[:, :, 0]
+
+
+def MLSDdetector(device=None):
+    if device is None:
+        device = rp.select_torch_device()
+    
+    return _MLSDdetector(device)

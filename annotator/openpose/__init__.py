@@ -12,14 +12,17 @@ from . import util
 from .body import Body
 from .hand import Hand
 from annotator.util import annotator_ckpts_path
+import rp
 
 
 body_model_path = "https://huggingface.co/lllyasviel/ControlNet/resolve/main/annotator/ckpts/body_pose_model.pth"
 hand_model_path = "https://huggingface.co/lllyasviel/ControlNet/resolve/main/annotator/ckpts/hand_pose_model.pth"
 
 
-class OpenposeDetector:
-    def __init__(self):
+@rp.CachedInstances
+class _OpenposeDetector:
+    def __init__(self, device):
+        self.device = device
         body_modelpath = os.path.join(annotator_ckpts_path, "body_pose_model.pth")
         hand_modelpath = os.path.join(annotator_ckpts_path, "hand_pose_model.pth")
 
@@ -28,8 +31,8 @@ class OpenposeDetector:
             load_file_from_url(body_model_path, model_dir=annotator_ckpts_path)
             load_file_from_url(hand_model_path, model_dir=annotator_ckpts_path)
 
-        self.body_estimation = Body(body_modelpath)
-        self.hand_estimation = Hand(hand_modelpath)
+        self.body_estimation = Body(body_modelpath, device)
+        self.hand_estimation = Hand(hand_modelpath, device)
 
     def __call__(self, oriImg, hand=False):
         oriImg = oriImg[:, :, ::-1].copy()
@@ -47,3 +50,10 @@ class OpenposeDetector:
                     all_hand_peaks.append(peaks)
                 canvas = util.draw_handpose(canvas, all_hand_peaks)
             return canvas, dict(candidate=candidate.tolist(), subset=subset.tolist())
+
+
+def OpenposeDetector(device=None):
+    if device is None:
+        device = rp.select_torch_device()
+    
+    return _OpenposeDetector(device)

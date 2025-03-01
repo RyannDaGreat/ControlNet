@@ -18,6 +18,12 @@ Annotators:
 Note: All annotators except CannyDetector support specifying a custom device.
 """
 
+import rp
+import sys
+
+# This codebase's imports assume the ControlNet repo is the root
+sys.path.append(rp.get_parent_directory(__file__, 2))
+
 # Import all annotator functions
 from .canny import CannyDetector
 from .hed import HEDdetector

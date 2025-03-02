@@ -72,25 +72,46 @@ def _round_to_nearest_patch_size(patch_size=32):
     return decorator
 
 def run_hed(image, device=None, *, threshold=None, sigma=None):
+    """ 
+    Runs HED edges on an image as defined by rp.is_image and returns a numpy image.
+    Set 0<=threshold<=1 and sigma>=0 for nonmaximum suppression.
+    Set device to use a specific GPU of your choice, otherwise it will choose automatically.
+    """
     assert (threshold is None) == (sigma is None), 'Either specify both threshold AND sigma for non-maximum-suppression, or dont specify either one'
     output = HEDdetector(device)(image)
     if threshold is not None and sigma is not None:
-        output = nms(output, threshold, sigma)
+        output = nms(output, threshold*255, sigma)
     return output
 
 @_round_to_nearest_patch_size(32)
 def run_midas(image, device=None):
+    """ 
+    Runs MIDAS monocular depth estimation on an image as defined by rp.is_image and returns a numpy image.
+    Set device to use a specific GPU of your choice, otherwise it will choose automatically.
+    """
     depth, normals = MidasDetector(device)(image)
     return depth
 
 @_round_to_nearest_patch_size(32)
 def run_midas_normals(image, device=None):
+    """ 
+    Estimates image normals via MIDAS monocular depth estimation on an image as defined by rp.is_image and returns a numpy image.
+    Set device to use a specific GPU of your choice, otherwise it will choose automatically.
+    """
     depth, normals = MidasDetector(device)(image)
     return normals
 
 def run_openpose(image, device=None, *, hands=False):
+    """ 
+    Estimates the pose of people in an image, optionally with their hands too on a given image as defined by rp.is_image. Returns an RGB numpy image.
+    Set device to use a specific GPU of your choice, otherwise it will choose automatically.
+    """
     return OpenposeDetector(device)(image, hand=hands)[0]
 
 def run_uniformer(image, device=None, *):
+    """ 
+    Returns a segmentation map as an RGB numpy image from a given image as defined by rp.is_image.
+    Set device to use a specific GPU of your choice, otherwise it will choose automatically.
+    """
     return UniformerDetector(device)(image)
 

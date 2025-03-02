@@ -57,22 +57,22 @@ def _round_to_nearest_patch_size(patch_size=32):
         @functools.wraps(func)
         def wrapper(image, device=None, **kwargs):
             original_dims = rp.get_image_dimensions(image)
-            
+
             # If already divisible, just run the function
             if _is_divisible_by_patch_size(image, patch_size):
                 return func(image, device, **kwargs)
-            
+
             # Otherwise resize, process, and resize back
             target_dims = tuple(x - x % patch_size for x in original_dims)
             resized_image = rp.cv_resize_image(image, target_dims)
             result = func(resized_image, device, **kwargs)
             return rp.cv_resize_image(result, original_dims)
-        
+
         return wrapper
     return decorator
 
 def run_hed(image, device=None, *, threshold=None, sigma=None):
-    """ 
+    """
     Runs HED edges on an image as defined by rp.is_image and returns a numpy image.
     Set 0<=threshold<=1 and sigma>=0 for nonmaximum suppression.
     Set device to use a specific GPU of your choice, otherwise it will choose automatically.
@@ -85,7 +85,7 @@ def run_hed(image, device=None, *, threshold=None, sigma=None):
 
 @_round_to_nearest_patch_size(32)
 def run_midas(image, device=None):
-    """ 
+    """
     Runs MIDAS monocular depth estimation on an image as defined by rp.is_image and returns a numpy image.
     Set device to use a specific GPU of your choice, otherwise it will choose automatically.
     """
@@ -94,7 +94,7 @@ def run_midas(image, device=None):
 
 @_round_to_nearest_patch_size(32)
 def run_midas_normals(image, device=None):
-    """ 
+    """
     Estimates image normals via MIDAS monocular depth estimation on an image as defined by rp.is_image and returns a numpy image.
     Set device to use a specific GPU of your choice, otherwise it will choose automatically.
     """
@@ -102,16 +102,58 @@ def run_midas_normals(image, device=None):
     return normals
 
 def run_openpose(image, device=None, *, hands=False):
-    """ 
+    """
     Estimates the pose of people in an image, optionally with their hands too on a given image as defined by rp.is_image. Returns an RGB numpy image.
     Set device to use a specific GPU of your choice, otherwise it will choose automatically.
     """
     return OpenposeDetector(device)(image, hand=hands)[0]
 
 def run_uniformer(image, device=None, *):
-    """ 
+    """
     Returns a segmentation map as an RGB numpy image from a given image as defined by rp.is_image.
     Set device to use a specific GPU of your choice, otherwise it will choose automatically.
     """
     return UniformerDetector(device)(image)
 
+def run_annotator_demo(*images):
+    """ Run this function as-is to demo the annotator """
+
+    if not images:
+        images = [
+            'https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png?20111103160805',
+            'https://vincentloy.wordpress.com/wp-content/uploads/2010/09/tragic-1-city-skyscrapers.jpg?w=640',
+            'https://thumbs.dreamstime.com/b/amazed-surprised-young-woman-light-clothes-hold-hands-yoga-gesture-relaxing-meditating-isolated-white-wall-amazed-142818153.jpg',
+        ]
+
+    for image in images:
+        if isinstance(image, str):
+            image = rp.load_image(image, use_cache=True)
+
+        display_eta = rp.eta(12, 'Creating Images')
+        def append(output, label):
+            display_eta(len(images)+1)
+            images.append(rp.labeled_image(output, label, font='G:Roboto', size=30, background_color='dark random teal'))
+
+        images=[]
+
+        # Get various annotator outputs
+        append(                  image                        , 'input image'                  )
+        append(run_uniformer    (image                       ), 'run_uniformer'                )
+        append(run_openpose     (image                       ), 'run_openpose'                 )
+        append(run_openpose     (image, hand=True            ), 'run_openpose hand=True'       )
+        append(run_midas_normals(image                       ), 'run_midas_normals'            )
+        append(run_midas        (image                       ), 'run_midas'                    )
+        append(run_hed          (image, threshold=10, sigma=5), 'run_hed threshold=.1,sigma=10')
+        append(run_hed          (image, threshold= 0, sigma=5), 'run_hed threshold=.5,sigma= 0')
+        append(run_hed          (image                       ), 'run_hed'                      )
+        append(rp.auto_canny    (image                       ), 'rp.auto_canny'                )
+        append(rp.auto_canny    (rp.cv_box_blur(image, 5)    ), 'rp.auto_canny box-sigma=5'    )
+        append(rp.auto_canny    (rp.cv_box_blur(image,10)    ), 'rp.auto_canny box-sigma=10'   )
+
+        #Save and display
+        output = rp.tiled_images(images))
+        fansi_print("SAVED IMAGE:" + rp.get_absolute_path(rp.save_image(output, rp.get_unique_copy_path("annotator_demo_output.jpg"))), 'green bold')
+        rp.display_image(output)
+
+if __name__ == '__main__':
+    run_annotator_demo()

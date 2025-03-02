@@ -32,6 +32,7 @@ class _MLSDdetector(rp.CachedInstances):
 
     def __call__(self, input_image, thr_v, thr_d):
         assert input_image.ndim == 3
+        input_image = rp.as_byte_image(rp.as_rgb_image(input_image))
         img = input_image
         img_output = np.zeros_like(img)
         try:

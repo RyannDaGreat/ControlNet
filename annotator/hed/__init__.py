@@ -66,6 +66,7 @@ class _HEDdetector(rp.CachedInstances):
         self.netNetwork.load_state_dict(torch.load(modelpath))
 
     def __call__(self, input_image):
+        input_image = rp.as_byte_image(rp.as_rgb_image(input_image))
         assert input_image.ndim == 3
         H, W, C = input_image.shape
         with torch.no_grad():

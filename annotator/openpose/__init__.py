@@ -34,6 +34,7 @@ class _OpenposeDetector(rp.CachedInstances):
         self.hand_estimation = Hand(hand_modelpath, device)
 
     def __call__(self, oriImg, hand=False):
+        oriImg = rp.as_byte_image(rp.as_rgb_image(oriImg))
         oriImg = oriImg[:, :, ::-1].copy()
         with torch.no_grad():
             candidate, subset = self.body_estimation(oriImg)

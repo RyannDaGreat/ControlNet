@@ -24,6 +24,7 @@ class _UniformerDetector(rp.CachedInstances):
         self.model = init_segmentor(config_file, modelpath).to(device)
 
     def __call__(self, img):
+        img = rp.as_byte_image(rp.as_rgb_image(img))
         result = inference_segmentor(self.model, img)
         res_img = show_result_pyplot(self.model, img, result, get_palette('ade'), opacity=1)
         return res_img

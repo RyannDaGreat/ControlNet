@@ -18,6 +18,7 @@ class _MidasDetector(rp.CachedInstances):
 
     def __call__(self, input_image, a=np.pi * 2.0, bg_th=0.1):
         assert input_image.ndim == 3
+        input_image = rp.as_byte_image(rp.as_rgb_image(input_image))
         image_depth = input_image
         with torch.no_grad():
             image_depth = torch.from_numpy(image_depth).float().to(self.device)

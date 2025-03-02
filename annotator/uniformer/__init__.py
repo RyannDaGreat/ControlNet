@@ -13,8 +13,7 @@ import rp
 checkpoint_file = "https://huggingface.co/lllyasviel/ControlNet/resolve/main/annotator/ckpts/upernet_global_small.pth"
 
 
-@rp.CachedInstances
-class _UniformerDetector:
+class _UniformerDetector(rp.CachedInstances):
     def __init__(self, device):
         self.device = device
         modelpath = os.path.join(annotator_ckpts_path, "upernet_global_small.pth")

@@ -11,8 +11,7 @@ from .api import MiDaSInference
 import rp
 
 
-@rp.CachedInstances
-class _MidasDetector:
+class _MidasDetector(rp.CachedInstances):
     def __init__(self, device):
         self.device = device
         self.model = MiDaSInference(model_type="dpt_hybrid").to(device)

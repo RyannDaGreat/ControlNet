@@ -54,8 +54,7 @@ class ControlNetHED_Apache2(torch.nn.Module):
         return projection1, projection2, projection3, projection4, projection5
 
 
-@rp.CachedInstances
-class _HEDdetector:
+class _HEDdetector(rp.CachedInstances):
     def __init__(self, device):
         self.device=device
         remote_model_path = "https://huggingface.co/lllyasviel/Annotators/resolve/main/ControlNetHED.pth"

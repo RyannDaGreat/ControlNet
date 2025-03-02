@@ -19,8 +19,7 @@ import rp
 remote_model_path = "https://huggingface.co/lllyasviel/ControlNet/resolve/main/annotator/ckpts/mlsd_large_512_fp32.pth"
 
 
-@rp.CachedInstances
-class _MLSDdetector:
+class _MLSDdetector(rp.CachedInstances):
     def __init__(self, device):
         self.device = device
         model_path = os.path.join(annotator_ckpts_path, "mlsd_large_512_fp32.pth")

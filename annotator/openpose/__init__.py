@@ -19,8 +19,7 @@ body_model_path = "https://huggingface.co/lllyasviel/ControlNet/resolve/main/ann
 hand_model_path = "https://huggingface.co/lllyasviel/ControlNet/resolve/main/annotator/ckpts/hand_pose_model.pth"
 
 
-@rp.CachedInstances
-class _OpenposeDetector:
+class _OpenposeDetector(rp.CachedInstances):
     def __init__(self, device):
         self.device = device
         body_modelpath = os.path.join(annotator_ckpts_path, "body_pose_model.pth")

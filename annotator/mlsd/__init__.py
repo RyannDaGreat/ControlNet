@@ -46,8 +46,12 @@ class _MLSDdetector(rp.CachedInstances):
         return img_output[:, :, 0]
 
 
+_device = None
 def MLSDdetector(device=None):
+    global _device
     if device is None:
+        device = device or _device
         device = rp.select_torch_device()
+    _device = device
     
     return _MLSDdetector(device)

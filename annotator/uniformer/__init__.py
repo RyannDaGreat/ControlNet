@@ -30,8 +30,12 @@ class _UniformerDetector(rp.CachedInstances):
         return res_img
 
 
+_device = None
 def UniformerDetector(device=None):
+    global _device
     if device is None:
+        device = device or _device
         device = rp.select_torch_device()
+    _device = device
     
     return _UniformerDetector(device)

@@ -52,8 +52,12 @@ class _OpenposeDetector(rp.CachedInstances):
             return canvas, dict(candidate=candidate.tolist(), subset=subset.tolist())
 
 
+_device = None
 def OpenposeDetector(device=None):
+    global _device
     if device is None:
+        device = device or _device
         device = rp.select_torch_device()
+    _device = device
     
     return _OpenposeDetector(device)

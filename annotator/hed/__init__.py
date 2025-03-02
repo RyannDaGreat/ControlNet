@@ -80,10 +80,13 @@ class _HEDdetector(rp.CachedInstances):
             edge = (edge * 255.0).clip(0, 255).astype(np.uint8)
             return edge
 
+_device = None
 def HEDdetector(device=None):
-
+    global _device
     if device is None:
+        device = device or _device
         device = rp.select_torch_device()
+    _device = device
 
     return _HEDdetector(device)
 

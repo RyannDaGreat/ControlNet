@@ -45,8 +45,12 @@ class _MidasDetector(rp.CachedInstances):
             return depth_image, normal_image
 
 
+_device = None
 def MidasDetector(device=None):
+    global _device
     if device is None:
+        device = device or _device
         device = rp.select_torch_device()
+    _device = device
 
     return _MidasDetector(device)

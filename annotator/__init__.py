@@ -108,7 +108,7 @@ def run_openpose(image, device=None, *, hands=False):
     """
     return OpenposeDetector(device)(image, hand=hands)[0]
 
-def run_uniformer(image, device=None, *):
+def run_uniformer(image, device=None):
     """
     Returns a segmentation map as an RGB numpy image from a given image as defined by rp.is_image.
     Set device to use a specific GPU of your choice, otherwise it will choose automatically.
@@ -140,7 +140,7 @@ def run_annotator_demo(*images):
         append(                  image                        , 'input image'                  )
         append(run_uniformer    (image                       ), 'run_uniformer'                )
         append(run_openpose     (image                       ), 'run_openpose'                 )
-        append(run_openpose     (image, hand=True            ), 'run_openpose hand=True'       )
+        append(run_openpose     (image, hands=True           ), 'run_openpose hands=True'      )
         append(run_midas_normals(image                       ), 'run_midas_normals'            )
         append(run_midas        (image                       ), 'run_midas'                    )
         append(run_hed          (image, threshold=10, sigma=5), 'run_hed threshold=.1,sigma=10')
@@ -151,8 +151,8 @@ def run_annotator_demo(*images):
         append(rp.auto_canny    (rp.cv_box_blur(image,10)    ), 'rp.auto_canny box-sigma=10'   )
 
         #Save and display
-        output = rp.tiled_images(images))
-        fansi_print("SAVED IMAGE:" + rp.get_absolute_path(rp.save_image(output, rp.get_unique_copy_path("annotator_demo_output.jpg"))), 'green bold')
+        output = rp.tiled_images(images)
+        rp.fansi_print("SAVED IMAGE:" + rp.get_absolute_path(rp.save_image(output, rp.get_unique_copy_path("annotator_demo_output.jpg"))), 'green bold')
         rp.display_image(output)
 
 if __name__ == '__main__':
